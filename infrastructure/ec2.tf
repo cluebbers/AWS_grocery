@@ -3,6 +3,11 @@ resource "aws_instance" "app" {
   instance_type          = var.instance_type
   key_name               = "groceryssh"
   vpc_security_group_ids = [aws_security_group.app.id]
+  iam_instance_profile   = aws_iam_instance_profile.ec2_s3.name
+
+  lifecycle {
+    ignore_changes = [ami]
+  }
 
   # Re-run the bootstrap (recreate the instance) whenever the script changes.
   user_data_replace_on_change = true
@@ -31,6 +36,9 @@ docker build -t grocerymate .
 #    JWT secret is generated on the box; DB values come from Terraform.
 docker run -d --restart unless-stopped --network host \
   -e JWT_SECRET_KEY=$(openssl rand -hex 32) \
+  -e USE_S3_STORAGE=true \
+  -e S3_BUCKET_NAME=${aws_s3_bucket.avatars.bucket} \
+  -e S3_REGION=${var.aws_region} \
   -e POSTGRES_USER=${var.db_username} \
   -e POSTGRES_PASSWORD=${var.db_password} \
   -e POSTGRES_DB=${var.db_name} \
