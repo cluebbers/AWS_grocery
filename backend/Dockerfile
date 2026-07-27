@@ -1,14 +1,17 @@
-# Use the official Python image as a base
-FROM python:3.9
+# Use a lightweight Python base image (slim is ~150 MB vs ~1 GB for full python:3.9)
+FROM python:3.9-slim
 
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy the application files into the container
-COPY . .
+# Copy requirements first so `pip install` is cached unless dependencies change
+COPY requirements.txt .
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the application code
+COPY . .
 
 # Run the application
 CMD ["python", "run.py"]
