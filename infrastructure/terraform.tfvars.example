@@ -1,0 +1,14 @@
+# Copy this file to `terraform.tfvars` and fill in your own values.
+# `terraform.tfvars` is gitignored (it holds secrets); this .example is committed
+# so anyone cloning the repo knows which variables to set.
+
+# --- Required (no defaults in main.tf) ---
+db_password = "change-me"          # RDS master password
+my_ip       = "1.2.3.4/32"         # your public IP in CIDR form, for SSH access
+alert_email = "you@example.com"    # receives EC2 health alerts (confirm the SNS email)
+
+# --- Optional (uncomment to override the defaults in main.tf) ---
+# aws_region    = "eu-central-1"
+# instance_type = "t2.micro"
+# db_name       = "grocerymate_db"
+# db_username   = "grocery_user"
