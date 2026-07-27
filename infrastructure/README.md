@@ -1,10 +1,16 @@
 # Infrastructure (Terraform)
 
-Provisions the GroceryMate app on AWS: **EC2 + Security Groups + RDS (PostgreSQL)** in the default VPC (`eu-central-1`). The EC2 `user_data` installs Docker, clones the repo, builds the image, and runs the app against RDS with config injected at runtime.
+Provisions the GroceryMate app on AWS: **EC2 + Security Groups + RDS (PostgreSQL) + S3 + a scheduled Lambda health check** in the default VPC (`eu-central-1`). The EC2 `user_data` installs Docker, clones the repo, builds the image, and runs the app against RDS with config injected at runtime.
 
 ## Deploy
 
-Set `db_password` and `my_ip` (your IP as `x.x.x.x/32`) in `terraform.tfvars`, then:
+Copy the example vars file and fill in your values:
+
+```bash
+cp terraform.tfvars.example terraform.tfvars
+```
+
+Required variables: `db_password`, `my_ip` (your IP as `x.x.x.x/32`), and `alert_email` (receives EC2 health alerts). Then:
 
 ```bash
 terraform init
@@ -12,6 +18,8 @@ terraform apply
 ```
 
 Outputs the EC2 public IP (`app_ip`) and the RDS endpoint (`rds_endpoint`).
+
+**After apply:** confirm the SNS subscription — AWS emails a confirmation link to `alert_email`; click it, or no health alerts are delivered.
 
 ## ⚠️ Required one-time step: seed the database
 

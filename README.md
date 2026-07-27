@@ -4,7 +4,7 @@ Deploys the **GroceryMate** e-commerce app to AWS as **Infrastructure as Code** 
 
 > **Original application** (Flask + React, by Alejandro Roman Ibanez): <https://github.com/AlejandroRomanIbanez/AWS_grocery>
 
-`Terraform` · `AWS (EC2 · RDS · S3 · IAM)` · `Docker` · `PostgreSQL` · `eu-central-1`
+`Terraform` · `AWS (EC2 · RDS · S3 · IAM · Lambda · SNS)` · `Docker` · `PostgreSQL` · `eu-central-1`
 
 ---
 
@@ -24,18 +24,29 @@ graph LR
     end
     S3[("S3 bucket<br/>user avatars")]
     IAM["IAM role +<br/>instance profile"]
+    EventBridge["EventBridge<br/>schedule · rate(1 min)"]
+    Lambda["Lambda<br/>EC2 health check"]
+    SNS[("SNS topic")]
   end
+
+  Ops(["📧 Admin email"])
 
   User -->|"HTTP :5000"| EC2
   User -.->|"SSH :22 — my IP only"| EC2
   EC2 -->|":5432 · SG-to-SG"| RDS
   EC2 -->|"avatars · no static keys"| S3
   IAM -.->|"assumed by"| EC2
+  EventBridge -->|"every minute"| Lambda
+  Lambda -.->|"describe status"| EC2
+  Lambda -->|"publish"| SNS
+  SNS -->|"email alert"| Ops
 ```
 
 The EC2 instance boots via a Terraform `user_data` script that installs Docker, clones the app, builds the image, and runs the container — with DB credentials injected by Terraform and S3 access granted through the IAM role.
 
 **Container:** `python:3.12-slim` base image with layer-cached dependencies, served by **gunicorn** (production WSGI server).
+
+**Monitoring:** an EventBridge-scheduled Lambda checks EC2 instance health every minute and emails an SNS alert when an instance becomes impaired or is stopped.
 
 ## AWS services
 
@@ -47,6 +58,9 @@ The EC2 instance boots via a Terraform `user_data` script that installs Docker, 
 | **IAM** (role + instance profile) | Grants EC2 scoped S3 access | No static credentials; least privilege |
 | **Security Groups** | Network firewall | SSH locked to my IP; DB private (SG-to-SG); app public on 5000 |
 | **EBS** (`gp3`, 30 GB) | EC2 root volume | Persistent disk for OS + Docker images |
+| **Lambda** | Scheduled EC2 health check | Serverless — nothing to run the check on; pay per invocation |
+| **EventBridge** | Triggers the Lambda every minute | Managed schedule (cron); no scheduler to maintain |
+| **SNS** | Emails health alerts | Simple pub/sub fan-out to email (extensible to SMS, etc.) |
 
 ## Infrastructure as Code
 
@@ -60,6 +74,7 @@ All Terraform lives in [`infrastructure/`](infrastructure/):
 | `rds.tf` | RDS PostgreSQL instance |
 | `s3.tf` | S3 bucket (private, versioned) |
 | `iam.tf` | IAM role, scoped S3 policy, instance profile |
+| `lambda.tf` | Health-check Lambda, SNS topic + email subscription, EventBridge schedule, Lambda IAM role |
 | `outputs.tf` | EC2 public IP, RDS endpoint |
 
 **Deploy / teardown steps** (including the one-time DB seed): see [`infrastructure/README.md`](infrastructure/README.md). In short:
