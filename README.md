@@ -17,7 +17,7 @@ graph LR
   subgraph AWS["AWS · eu-central-1 · default VPC"]
     direction LR
     subgraph appSG["app security group"]
-      EC2["EC2 t2.micro<br/>Docker: grocerymate<br/>Flask :5000"]
+      EC2["EC2 t2.micro<br/>Docker: grocerymate<br/>Flask + gunicorn :5000"]
     end
     subgraph rdsSG["rds security group"]
       RDS[("RDS PostgreSQL<br/>db.t3.micro · private")]
@@ -34,6 +34,8 @@ graph LR
 ```
 
 The EC2 instance boots via a Terraform `user_data` script that installs Docker, clones the app, builds the image, and runs the container — with DB credentials injected by Terraform and S3 access granted through the IAM role.
+
+**Container:** `python:3.12-slim` base image with layer-cached dependencies, served by **gunicorn** (production WSGI server).
 
 ## AWS services
 
