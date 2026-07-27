@@ -1,5 +1,5 @@
 resource "aws_iam_role" "ec2_s3" {
-  name = "grocery-ec2-role"
+  name = "grocerymate-ec2-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -11,7 +11,7 @@ resource "aws_iam_role" "ec2_s3" {
 }
 
 resource "aws_iam_role_policy" "s3_access" {
-  name = "grocery-s3-access"
+  name = "grocerymate-s3-access"
   role = aws_iam_role.ec2_s3.id
 
   policy = jsonencode({
@@ -33,6 +33,6 @@ resource "aws_iam_role_policy" "s3_access" {
 }
 
 resource "aws_iam_instance_profile" "ec2_s3" {
-  name = "grocery-ec2-profile"
+  name = "grocerymate-ec2-profile"
   role = aws_iam_role.ec2_s3.name
 }
