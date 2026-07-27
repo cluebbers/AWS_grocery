@@ -13,5 +13,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY . .
 
-# Run the application
-CMD ["python", "run.py"]
+# Run the application with gunicorn (production WSGI server)
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run:app"]
