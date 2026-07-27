@@ -6,6 +6,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.0"
+    }
   }
 }
 
@@ -55,5 +59,10 @@ variable "db_password" {
 
 variable "my_ip" {
   description = "My IP (CIDR) allowed to SSH into the EC2 instance"
+  type        = string
+}
+
+variable "alert_email" {
+  description = "Email address that receives EC2 health alerts (you must confirm the SNS subscription email)"
   type        = string
 }
