@@ -1,5 +1,5 @@
-# Use a lightweight Python base image (slim is ~150 MB vs ~1 GB for full python:3.9)
-FROM python:3.9-slim
+# Use a lightweight, currently-supported Python base image
+FROM python:3.12-slim
 
 # Set the working directory inside the container
 WORKDIR /app
