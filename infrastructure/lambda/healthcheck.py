@@ -47,13 +47,6 @@ def lambda_handler(event, context):
                 f"EC2 Notification: {instance_id} is STOPPED",
                 f"Instance {instance_id} was stopped.",
             )
-        # Healthy and running → notification
-        elif state == "running" and instance_check == "ok" and system_check == "ok":
-            _publish(
-                sns,
-                f"EC2 Healthy: {instance_id}",
-                f"Instance {instance_id} is healthy and running.",
-            )
 
 
 def _publish(sns, subject, message):
