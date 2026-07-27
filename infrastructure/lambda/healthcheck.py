@@ -24,11 +24,16 @@ def lambda_handler(event, context):
             "InstanceStatuses", []
         )
         if statuses:
-            instance_check = statuses[0]["InstanceStatus"]["Details"][0]["Status"]
-            system_check = statuses[0]["SystemStatus"]["Details"][0]["Status"]
+            # Use the summary Status ("ok" / "impaired" / "initializing"),
+            # NOT Details[].Status ("passed" / "failed") — mixing the two is why a
+            # healthy instance ("passed") never matched "ok" and sent no alert.
+            instance_check = statuses[0]["InstanceStatus"]["Status"]
+            system_check = statuses[0]["SystemStatus"]["Status"]
+
+        print(f"{instance_id}: state={state} instance={instance_check} system={system_check}")
 
         # Unhealthy → alarm
-        if instance_check == "failed" or system_check == "failed":
+        if instance_check == "impaired" or system_check == "impaired":
             _publish(
                 sns,
                 f"EC2 Health Alarm: {instance_id}",
