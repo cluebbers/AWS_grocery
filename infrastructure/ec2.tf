@@ -4,6 +4,11 @@ resource "aws_instance" "app" {
   key_name               = "groceryssh"
   vpc_security_group_ids = [aws_security_group.app.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_s3.name
+  root_block_device {
+    volume_size = 30
+    volume_type = "gp3"
+  }
+
 
   lifecycle {
     ignore_changes = [ami]
@@ -58,6 +63,6 @@ data "aws_ami" "amazon_linux" {
 
   filter {
     name   = "name"
-    values = ["al2023-ami-*-x86_64"]
+    values = ["al2023-ami-2023.*-x86_64"]
   }
 }
